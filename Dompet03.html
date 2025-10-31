@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Jam & Dompet Tabungan Baht</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS BERSAMA (Gabungan Styling Dompet) --- */
+        :root {
+            --color-bg-dark: #12121e;
+            --color-primary: #00ff99;
+            --color-text-light: #e0e0e0;
+            --color-card-dark: #1e1e2d;
+            --color-expense: #ff4d4d;
+            --color-income: var(--color-primary);
+            --color-reset: #6a0dad; 
+            --color-auto-share: #ffc107; 
+            --color-personal-tab: #00bfff; 
+            --color-personal-withdraw: #ff8c00; 
+            --color-pin-update: #4CAF50; 
+            --font-family-primary: 'Space Grotesk', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-light);
+            line-height: 1.6;
+            font-family: var(--font-family-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- Tampilan Utama (Jam atau Dompet) --- */
+        #mainContainer {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tampilan Jam */
+        .jam-view {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            flex-grow: 1;
+            text-align: center;
+            padding: 50px;
+        }
+        
+        .clock-container {
+            padding: 40px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1e1e2d, #12121e);
+            box-shadow: 0 10px 30px rgba(0, 255, 153, 0.15), 0 0 50px rgba(0, 255, 153, 0.05);
+        }
+
+        .digital-time {
+            font-size: 6rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            letter-spacing: 5px;
+            line-height: 1.1;
+        }
+
+        .digital-date {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--color-text-light);
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        /* Tampilan Dompet */
+        .dompet-view {
+            display: none; /* Default tersembunyi */
+            padding-top: 20px;
+            flex-grow: 1;
+        }
+
+        /* Tombol Toggle (Dompet/Jam) */
+        .toggle-button {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 70px; 
+            height: 70px;
+            background-color: var(--color-primary);
+            color: var(--color-bg-dark);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem; 
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 255, 153, 0.5);
+            transition: all 0.3s ease;
+            text-decoration: none; 
+            border: none;
+            z-index: 50;
+        }
+
+        .toggle-button:hover {
+            transform: scale(1.15) rotate(5deg);
+            background-color: #33ffb5;
+        }
+
+        /* --- DOMPET LAYOUT & STYLING (CSS Dompet) --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 30px 0;
+        }
+        
+        .navbar .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .digital-clock-dompet {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--color-text-light);
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 40px;
+        }
+
+        .balance-area {
+            flex: 1.5;
+        }
+
+        .side-panel {
+            flex: 1; 
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .card {
+            background-color: var(--color-card-dark);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        .balance-card {
+            padding: 30px;
+            text-align: center;
+            border: 2px solid var(--color-primary);
+        }
+
+        .total-balance {
+            display: block;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        /* Personal Tabungan */
+        .personal-balance-card {
+            border-left: 5px solid var(--color-personal-tab);
+        }
+
+        .personal-balance-item {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto; 
+            gap: 10px;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .personal-balance-item span.balance {
+            color: var(--color-personal-tab);
+            font-weight: 700;
+            text-align: right;
+        }
+        
+        .personal-balance-item button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        .withdraw-personal { background-color: var(--color-personal-withdraw); color: white; }
+        .update-pin-personal { background-color: var(--color-pin-update); color: white; }
+        .total-share-row { border-top: 2px solid var(--color-personal-tab) !important; display: flex; justify-content: space-between; padding-top: 15px; margin-top: 10px; font-weight: 700; }
+
+        /* Forms & Buttons */
+        .form-card input, .form-card select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: var(--color-bg-dark);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--color-text-light);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-card button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 5px; 
+        }
+
+        .btn-deposit { background-color: var(--color-primary); color: var(--color-bg-dark); }
+        .btn-withdraw { background-color: var(--color-expense); color: var(--color-text-light); }
+        #autoShareBtn { background-color: var(--color-auto-share); color: var(--color-bg-dark); margin-bottom: 15px; }
+        
+        #resetBalanceBtn { background-color: var(--color-reset) !important; border-color: var(--color-reset) !important; opacity: 1; }
+
+        /* History & Results */
+        #historyList, .result-card ul { list-style: none; }
+        #historyList li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        .history-description { flex-grow: 1; }
+        .income { color: var(--color-income); font-weight: 700; }
+        .expense { color: var(--color-expense); font-weight: 700; }
+        
+        /* Modals (Pop-ups) */
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; 
+            overflow: auto; background-color: rgba(0,0,0,0.6); padding-top: 100px;
+        }
+
+        .modal-content {
+            background-color: var(--color-card-dark); margin: 5% auto; padding: 30px; border-radius: 15px;
+            width: 90%; max-width: 500px; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        .close-btn, .close-btn-personal, .close-btn-pin {
+            color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    
+    <button id="toggleViewBtn" class="toggle-button" title="Buka Dompet Tabungan">
+        &#128188; </button>
+
+    <div id="mainContainer">
+        <div id="jamView" class="jam-view">
+            <div class="clock-container">
+                <div class="digital-time" id="digitalTime">00:00:00</div>
+                <div class="digital-date" id="digitalDate">Tanggal Hari Ini</div>
+            </div>
+        </div>
+
+        <div id="dompetView" class="dompet-view container">
+            <header class="navbar">
+                <h1 class="title">🚀 DOMPET TABUNGAN BAHT BERSAMA</h1>
+                <div class="digital-clock-dompet" id="digitalClockDompet"></div>
+            </header>
+
+            <main class="dashboard">
+                <section class="balance-area">
+                    <h1>Total Saldo Tabungan Bersama</h1>
+                    <div class="balance-card card">
+                        <span class="label">SALDO SAAT INI</span>
+                        <span class="total-balance" id="totalBalance">฿ 0</span>
+                    </div>
+
+                    <div class="card form-card">
+                        <h3>➕ Uang Masuk (Deposit)</h3>
+                        <form id="depositForm">
+                            <select id="depositSource" required>
+                                <option value="" disabled selected>Pilih Sumber Uang Masuk</option>
+                                <option value="Tuan Ba">Tuan Ba</option>
+                                <option value="Mi Pang">Mi Pang</option>
+                                <option value="Jin Qian Bao">Jin Qian Bao</option>
+                                <option value="Ne Zha">Ne Zha</option>
+                                <option value="Jie Xun">Jie Xun</option>
+                            </select>
+                            <input type="number" id="depositAmount" placeholder="Masukkan jumlah uang (฿)" required min="1">
+                            <button type="submit" class="btn-deposit">Tambahkan Saldo</button>
+                        </form>
+                    </div>
+
+                    <div class="card history-card">
+                        <h3>📚 History Transaksi</h3>
+                        <ul id="historyList"></ul>
+                        <button id="resetBalanceBtn" class="btn-history-clear">MASTER RESET (PIN 1202)</button>
+                        <button id="clearHistoryBtn" class="btn-history-clear" style="background-color: var(--color-expense);">Hapus Riwayat Bulanan (Hanya History)</button>
+                    </div>
+                </section>
+
+                <section class="side-panel">
+                    <div class="card personal-balance-card">
+                        <h3>💰 Saldo Tabungan Pribadi</h3>
+                        <ul id="personalTabunganList">
+                            <li class="personal-balance-item">
+                                Xiao Hu: 
+                                <span class="balance" id="tabunganXiaoHu">฿ 0</span>
+                                <button class="update-pin-personal" data-person="Xiao Hu">PIN</button>
+                                <button class="withdraw-personal" data-person="Xiao Hu">Tarik</button>
+                            </li>
+                            <li class="personal-balance-item">
+                                Jia Fei Mao: 
+                                <span class="balance" id="tabunganJiaFeiMao">฿ 0</span>
+                                <button class="update-pin-personal" data-person="Jia Fei Mao">PIN</button>
+                                <button class="withdraw-personal" data-person="Jia Fei Mao">Tarik</button>
+                            </li>
+                            <li class="personal-balance-item">
+                                Jie Kie: 
+                                <span class="balance" id="tabunganJieKie">฿ 0</span>
+                                <button class="update-pin-personal" data-person="Jie Kie">PIN</button>
+                                <button class="withdraw-personal" data-person="Jie Kie">Tarik</button>
+                            </li>
+                            <li class="total-share-row">
+                                Total Tabungan: 
+                                <span id="totalPersonalTabungan" style="color: var(--color-personal-tab);">฿ 0</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card form-card">
+                        <h3>➖ Penarikan Dana Bersama</h3>
+                        <p style="font-size: 0.9em; margin-bottom: 15px; opacity: 0.7;">Penarikan Dana Bersama (Manual) atau Otomatis.</p>
+                        
+                        <button type="button" id="autoShareBtn">Pembagian Otomatis (Kelipatan ฿100)</button>
+
+                        <button type="button" id="openWithdrawalModalBtn" class="btn-withdraw">Tarik Dana Bersama Manual</button>
+                    </div>
+
+                    <div class="card result-card">
+                        <h3>Detail Pembagian Terakhir</h3>
+                        <ul id="distributionList">
+                            <li>Xiao Hu (Beban/Dapat): <span class="income" id="shareXiaoHu">฿ 0</span></li>
+                            <li>Jia Fei Mao (Beban/Dapat): <span class="income" id="shareJiaFeiMao">฿ 0</span></li>
+                            <li>Jie Kie (Beban/Dapat): <span class="income" id="shareJieKie">฿ 0</span></li>
+                            <li class="total-share-row">Total yang Dibagikan: <span class="expense" id="totalWithdrawal">฿ 0</span></li>
+                        </ul>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <div id="withdrawalModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>💸 Konfirmasi Penarikan Dana Bersama</h3>
+            <form id="withdrawalFormModal">
+                <label for="withdrawalReceiver">Penerima Penarikan:</label>
+                <select id="withdrawalReceiver" required>
+                    <option value="" disabled selected>Pilih Nama Penerima</option>
+                    <option value="Xiao Hu">Xiao Hu</option>
+                    <option value="Jia Fei Mao">Jia Fei Mao</option>
+                    <option value="Jie Kie">Jie Kie</option>
+                </select>
+                <label for="withdrawalAmountModal">Jumlah Penarikan (฿):</label>
+                <input type="text" id="withdrawalAmountModal" placeholder="Ketik jumlah penarikan (misal: 50, 100)" required>
+                <label for="withdrawalKeterangan">Keterangan Penarikan:</label>
+                <input type="text" id="withdrawalKeterangan" placeholder="Contoh: Beli rokok, bayar parkir" required>
+                <button type="submit" class="btn-withdraw">Konfirmasi & Tarik Dana</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="personalWithdrawalModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn-personal">&times;</span>
+            <h3 id="personalWithdrawalTitle">💸 Tarik Saldo Tabungan Pribadi</h3>
+            <form id="personalWithdrawalForm">
+                <p id="currentPersonalBalanceInfo" style="margin-bottom: 20px; font-weight: 700;"></p>
+                <label for="personalWithdrawalPIN">PIN Tabungan (4 Digit):</label>
+                <input type="password" id="personalWithdrawalPIN" placeholder="Masukkan PIN Anda" maxlength="4" required>
+                <label for="personalWithdrawalAmount">Jumlah Penarikan (฿):</label>
+                <input type="number" id="personalWithdrawalAmount" placeholder="Ketik jumlah penarikan" required min="1">
+                <label for="personalWithdrawalKeterangan">Keterangan Penarikan:</label>
+                <input type="text" id="personalWithdrawalKeterangan" placeholder="Contoh: Beli keperluan pribadi" required>
+                <input type="hidden" id="personalWithdrawalPerson">
+                <button type="submit" class="btn-withdraw" style="background-color: var(--color-personal-withdraw);">Konfirmasi Tarik Dana Pribadi</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="pinUpdateModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn-pin">&times;</span>
+            <h3 id="pinUpdateTitle">🔑 Atur/Ubah PIN Tabungan Pribadi</h3>
+            <form id="pinUpdateForm">
+                <p id="currentPinStatus" style="margin-bottom: 20px; font-weight: 700; font-size: 0.9em;"></p>
+                <label for="newPin">PIN Baru (4 Digit Angka):</label>
+                <input type="password" id="newPin" placeholder="Masukkan PIN 4 digit baru" maxlength="4" required pattern="[0-9]{4}">
+                <label for="confirmPin">Konfirmasi PIN Baru:</label>
+                <input type="password" id="confirmPin" placeholder="Ulangi PIN baru" maxlength="4" required pattern="[0-9]{4}">
+                <input type="hidden" id="pinUpdatePerson">
+                <button type="submit" class="btn-deposit">Simpan PIN Baru</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // --- JAVASCRIPT: Logika Program ---
+        
+        let totalBalance = 0; 
+        let personalBalances = { 
+            'Xiao Hu': 0,
+            'Jia Fei Mao': 0,
+            'Jie Kie': 0
+        };
+        let personalPins = { 
+            'Xiao Hu': null,
+            'Jia Fei Mao': null,
+            'Jie Kie': null
+        };
+        let transactionHistory = []; 
+        const NUM_PEOPLE = 3; 
+        const MASTER_RESET_PIN = '1202'; 
+        const AUTO_SHARE_MULTIPLIER = 100;
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        // DOM Elements
+        const jamView = document.getElementById('jamView');
+        const dompetView = document.getElementById('dompetView');
+        const toggleBtn = document.getElementById('toggleViewBtn');
+
+        const digitalTimeElement = document.getElementById('digitalTime');
+        const digitalDateElement = document.getElementById('digitalDate');
+        const clockElementDompet = document.getElementById('digitalClockDompet');
+        
+        const balanceElement = document.getElementById('totalBalance');
+        const historyListElement = document.getElementById('historyList');
+        const resetBalanceBtn = document.getElementById('resetBalanceBtn');
+        const autoShareBtn = document.getElementById('autoShareBtn');
+        const depositForm = document.getElementById('depositForm');
+        
+        // Modal & Form Elements (Semua sudah ada di HTML)
+        const modal = document.getElementById("withdrawalModal");
+        const openModalBtn = document.getElementById("openWithdrawalModalBtn");
+        const closeModalBtn = document.getElementsByClassName("close-btn")[0];
+        const withdrawalFormModal = document.getElementById('withdrawalFormModal');
+
+        const personalWithdrawalModal = document.getElementById('personalWithdrawalModal');
+        const closePersonalModalBtn = document.getElementsByClassName("close-btn-personal")[0];
+        const personalWithdrawalForm = document.getElementById('personalWithdrawalForm');
+        const personalWithdrawalTitle = document.getElementById('personalWithdrawalTitle');
+        const currentPersonalBalanceInfo = document.getElementById('currentPersonalBalanceInfo');
+        const personalWithdrawalPerson = document.getElementById('personalWithdrawalPerson');
+        const personalWithdrawalAmountInput = document.getElementById('personalWithdrawalAmount');
+        const personalWithdrawalPINInput = document.getElementById('personalWithdrawalPIN'); 
+
+        const pinUpdateModal = document.getElementById('pinUpdateModal');
+        const closePinModalBtn = document.getElementsByClassName("close-btn-pin")[0];
+        const pinUpdateForm = document.getElementById('pinUpdateForm');
+        const pinUpdateTitle = document.getElementById('pinUpdateTitle');
+        const currentPinStatus = document.getElementById('currentPinStatus');
+        const newPinInput = document.getElementById('newPin');
+        const confirmPinInput = document.getElementById('confirmPin');
+        const pinUpdatePersonInput = document.getElementById('pinUpdatePerson');
+
+        const tabunganXiaoHu = document.getElementById('tabunganXiaoHu');
+        const tabunganJiaFeiMao = document.getElementById('tabunganJiaFeiMao');
+        const tabunganJieKie = document.getElementById('tabunganJieKie');
+        const totalPersonalTabungan = document.getElementById('totalPersonalTabungan');
+        const updatePinButtons = document.querySelectorAll('.update-pin-personal');
+
+        // Local Storage Keys
+        const BALANCE_KEY = 'bahtTotalBalance';
+        const HISTORY_KEY = 'bahtTransactionHistory';
+        const PERSONAL_BALANCE_KEY = 'bahtPersonalBalances';
+        const PERSONAL_PIN_KEY = 'bahtPersonalPins'; 
+        const VIEW_KEY = 'currentView'; // Untuk menyimpan tampilan yang terakhir dibuka
+
+        // --- UTILITIES & UI UPDATES ---
+
+        const saveData = () => {
+            localStorage.setItem(BALANCE_KEY, totalBalance);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(transactionHistory));
+            localStorage.setItem(PERSONAL_BALANCE_KEY, JSON.stringify(personalBalances)); 
+            localStorage.setItem(PERSONAL_PIN_KEY, JSON.stringify(personalPins));
+        };
+
+        const loadData = () => {
+            // Load Saldo
+            const savedBalance = localStorage.getItem(BALANCE_KEY);
+            if (savedBalance !== null) totalBalance = parseFloat(savedBalance);
+            
+            // Load History
+            const savedHistory = localStorage.getItem(HISTORY_KEY);
+            if (savedHistory !== null) {
+                try { transactionHistory = JSON.parse(savedHistory); } catch (e) { transactionHistory = []; }
+            }
+            
+            // Load Personal Balances
+            const savedPersonalBalances = localStorage.getItem(PERSONAL_BALANCE_KEY);
+            if (savedPersonalBalances !== null) {
+                 try {
+                    const loadedBalances = JSON.parse(savedPersonalBalances);
+                    for (const key in loadedBalances) {
+                        if (personalBalances.hasOwnProperty(key)) {
+                            personalBalances[key] = parseFloat(loadedBalances[key]);
+                        }
+                    }
+                } catch (e) { personalBalances = { 'Xiao Hu': 0, 'Jia Fei Mao': 0, 'Jie Kie': 0 }; }
+            }
+            
+            // Load Personal Pins
+            const savedPersonalPins = localStorage.getItem(PERSONAL_PIN_KEY); 
+            if (savedPersonalPins !== null) {
+                 try { personalPins = JSON.parse(savedPersonalPins); } catch (e) { personalPins = { 'Xiao Hu': null, 'Jia Fei Mao': null, 'Jie Kie': null }; }
+            }
+            
+            // Load View (Jam atau Dompet)
+            const savedView = localStorage.getItem(VIEW_KEY);
+            if (savedView === 'dompet') {
+                showDompetView();
+            } else {
+                showJamView();
+            }
+        };
+        
+        const updateClock = () => {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const dayName = days[now.getDay()];
+            const date = now.getDate();
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            const dateString = `${dayName}, ${date} ${monthName} ${year}`;
+            
+            // Update Jam di tampilan Jam
+            digitalTimeElement.textContent = timeString;
+            digitalDateElement.textContent = dateString;
+
+            // Update Jam di tampilan Dompet
+            clockElementDompet.innerHTML = `${dateString} <br> ${timeString}`;
+        };
+
+        const formatCurrency = (amount) => {
+            const num = parseFloat(amount);
+            if (isNaN(num)) return '฿ 0';
+            return '฿ ' + num.toLocaleString('th-TH', { minimumFractionDigits: (num % 1 !== 0) ? 2 : 0, maximumFractionDigits: 2 });
+        };
+
+        const updateBalanceUI = () => {
+            balanceElement.textContent = formatCurrency(totalBalance);
+        };
+        
+        const updatePersonalTabunganUI = () => {
+            tabunganXiaoHu.textContent = formatCurrency(personalBalances['Xiao Hu']);
+            tabunganJiaFeiMao.textContent = formatCurrency(personalBalances['Jia Fei Mao']);
+            tabunganJieKie.textContent = formatCurrency(personalBalances['Jie Kie']);
+            
+            const totalTabungan = personalBalances['Xiao Hu'] + personalBalances['Jia Fei Mao'] + personalBalances['Jie Kie'];
+            totalPersonalTabungan.textContent = formatCurrency(totalTabungan);
+        };
+
+        const resetDistributionUI = () => {
+            document.getElementById('totalWithdrawal').textContent = formatCurrency(0);
+            document.getElementById('shareXiaoHu').textContent = formatCurrency(0);
+            document.getElementById('shareJiaFeiMao').textContent = formatCurrency(0);
+            document.getElementById('shareJieKie').textContent = formatCurrency(0);
+        };
+        
+        const updateHistoryUI = () => {
+            historyListElement.innerHTML = '';
+            transactionHistory.slice().reverse().forEach(t => {
+                const listItem = document.createElement('li');
+                let amountClass = (t.type === 'deposit' || t.netAmount < 0) ? 'income' : 'expense';
+                let sign = (t.type === 'deposit' || t.netAmount < 0) ? '+' : '-';
+                
+                const displayAmount = Math.abs(t.netAmount); 
+                
+                const transactionDate = new Date(t.timestamp);
+                const dateStr = `${String(transactionDate.getDate()).padStart(2, '0')}/${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
+                
+                listItem.innerHTML = `
+                    <div class="history-description">[${dateStr}] ${t.description}</div>
+                    <span class="${amountClass}">${sign}${formatCurrency(displayAmount).replace('฿ ', '')}</span>
+                `;
+                historyListElement.appendChild(listItem);
+            });
+        };
+        
+        // --- VIEW SWITCHING LOGIC ---
+        const showJamView = () => {
+            jamView.style.display = 'flex';
+            dompetView.style.display = 'none';
+            toggleBtn.innerHTML = '&#128188;'; // Dompet
+            toggleBtn.title = 'Buka Dompet Tabungan';
+            localStorage.setItem(VIEW_KEY, 'jam');
+        }
+
+        const showDompetView = () => {
+            jamView.style.display = 'none';
+            dompetView.style.display = 'block';
+            toggleBtn.innerHTML = '&#128339;'; // Jam
+            toggleBtn.title = 'Kembali ke Jam';
+            localStorage.setItem(VIEW_KEY, 'dompet');
+        }
+        
+        const toggleView = () => {
+            if (jamView.style.display === 'flex') {
+                showDompetView();
+            } else {
+                showJamView();
+            }
+        };
+
+        // --- HANDLERS (Sama seperti sebelumnya) ---
+
+        const handleDeposit = (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            const source = document.getElementById('depositSource').value;
+            if (!source || isNaN(amount) || amount <= 0) { alert('❌ Harap lengkapi semua data deposit yang valid.'); return; }
+            totalBalance += amount;
+            transactionHistory.push({ type: 'deposit', description: `Deposit dari ${source}`, netAmount: amount, timestamp: new Date().getTime() });
+            updateBalanceUI(); updateHistoryUI(); resetDistributionUI(); saveData(); 
+            depositForm.reset(); alert(`✅ Deposit sebesar ${formatCurrency(amount)} berhasil ditambahkan.`);
+        };
+
+        const handleWithdrawal = (e) => {
+            e.preventDefault();
+            const W = parseFloat(document.getElementById('withdrawalAmountModal').value);
+            const receiver = document.getElementById('withdrawalReceiver').value;
+            const keterangan = document.getElementById('withdrawalKeterangan').value;
+            
+            if (!receiver || keterangan.trim() === '' || isNaN(W) || W <= 0) { alert('❌ Harap lengkapi semua data penarikan yang valid.'); return; }
+            if (W > totalBalance) { alert(`⚠️ Saldo Bersama tidak mencukupi! Saldo Anda: ${formatCurrency(totalBalance)}.`); return; }
+
+            const sharePerPerson = W / NUM_PEOPLE; 
+            if (!confirm(`Anda akan menarik ${formatCurrency(W)} untuk ${receiver}. Beban dibagi rata per orang adalah ${formatCurrency(sharePerPerson)}. Lanjutkan?`)) { return; }
+            
+            totalBalance -= W; 
+            transactionHistory.push({ type: 'withdrawal', description: `[${receiver}] ${keterangan}`, netAmount: W, timestamp: new Date().getTime() });
+
+            document.getElementById('totalWithdrawal').textContent = formatCurrency(W);
+            document.getElementById('shareXiaoHu').textContent = formatCurrency(sharePerPerson);
+            document.getElementById('shareJiaFeiMao').textContent = formatCurrency(sharePerPerson);
+            document.getElementById('shareJieKie').textContent = formatCurrency(sharePerPerson);
+
+            updateBalanceUI(); updateHistoryUI(); saveData();
+            modal.style.display = "none"; withdrawalFormModal.reset();
+            alert(`✅ Penarikan ${formatCurrency(W)} berhasil.`);
+        };
+
+        const handleAutoShare = () => {
+            if (totalBalance < AUTO_SHARE_MULTIPLIER) { alert(`⚠️ Saldo Bersama kurang dari ${formatCurrency(AUTO_SHARE_MULTIPLIER)}.`); return; }
+            
+            const amountToShare = Math.floor(totalBalance / AUTO_SHARE_MULTIPLIER) * AUTO_SHARE_MULTIPLIER;
+            const sharePerPerson = amountToShare / NUM_PEOPLE;
+            
+            if (!confirm(`Akan dibagikan otomatis sebesar ${formatCurrency(amountToShare)}. Setiap orang akan menerima ${formatCurrency(sharePerPerson)} ke saldo pribadi. Lanjutkan?`)) { return; }
+
+            totalBalance -= amountToShare;
+            personalBalances['Xiao Hu'] += sharePerPerson;
+            personalBalances['Jia Fei Mao'] += sharePerPerson;
+            personalBalances['Jie Kie'] += sharePerPerson;
+
+            transactionHistory.push({ type: 'auto-share', description: `Pembagian Otomatis (Masuk Tabungan Pribadi)`, netAmount: amountToShare, timestamp: new Date().getTime() });
+            
+            document.getElementById('totalWithdrawal').textContent = formatCurrency(amountToShare);
+            document.getElementById('shareXiaoHu').textContent = formatCurrency(sharePerPerson);
+            document.getElementById('shareJiaFeiMao').textContent = formatCurrency(sharePerPerson);
+            document.getElementById('shareJieKie').textContent = formatCurrency(sharePerPerson);
+            
+            updateBalanceUI(); updatePersonalTabunganUI(); updateHistoryUI(); saveData();
+            alert(`✅ Pembagian otomatis ${formatCurrency(amountToShare)} berhasil.`);
+        };
+
+        const handleMasterReset = () => {
+            const inputPin = prompt("⚠️ Masukkan PIN MASTER (1202) untuk mereset SEMUA saldo dan riwayat:");
+            if (inputPin === MASTER_RESET_PIN) {
+                if (confirm("ANDA YAKIN? Tindakan ini akan menghapus SEMUA data!")) {
+                    totalBalance = 0;
+                    personalBalances = { 'Xiao Hu': 0, 'Jia Fei Mao': 0, 'Jie Kie': 0 };
+                    personalPins = { 'Xiao Hu': null, 'Jia Fei Mao': null, 'Jie Kie': null };
+                    transactionHistory = [];
+                    updateBalanceUI(); updatePersonalTabunganUI(); updateHistoryUI(); resetDistributionUI(); saveData(); 
+                    alert('🎉 MASTER RESET BERHASIL!');
+                } else { alert('Aksi reset dibatalkan.'); }
+            } else if (inputPin !== null) { alert('❌ PIN Master Salah. Reset dibatalkan.'); }
+        };
+
+        const handleClearHistory = () => {
+            if (confirm("Yakin ingin menghapus HANYA Riwayat Transaksi bulanan? Saldo akan tetap.")) {
+                transactionHistory = [];
+                updateHistoryUI();
+                saveData();
+                alert('Riwayat Transaksi berhasil dihapus.');
+            }
+        };
+
+        const handlePinUpdate = (e) => {
+            e.preventDefault();
+            const person = pinUpdatePersonInput.value;
+            const newPin = newPinInput.value;
+            const confirmPin = confirmPinInput.value;
+            if (newPin.length !== 4 || newPin !== confirmPin || !/^\d{4}$/.test(newPin)) {
+                alert('❌ PIN harus berupa 4 digit angka dan konfirmasi harus cocok.'); return;
+            }
+            personalPins[person] = newPin; saveData();
+            pinUpdateModal.style.display = "none"; pinUpdateForm.reset();
+            alert(`✅ PIN tabungan ${person} berhasil diatur/diperbarui.`);
+        };
+
+        const handlePersonalWithdrawal = (e) => {
+            e.preventDefault();
+            const person = personalWithdrawalPerson.value;
+            const inputPin = personalWithdrawalPINInput.value;
+            const amount = parseFloat(personalWithdrawalAmountInput.value);
+            const keterangan = document.getElementById('personalWithdrawalKeterangan').value.trim();
+
+            const storedPin = personalPins[person];
+            if (!storedPin) { alert(`❌ Tabungan ${person} belum memiliki PIN. Harap atur PIN terlebih dahulu.`); return; }
+            if (inputPin !== storedPin) { alert('❌ PIN Salah. Penarikan dibatalkan.'); personalWithdrawalPINInput.value = ''; return; }
+            if (isNaN(amount) || amount <= 0 || amount > personalBalances[person] || keterangan === '') {
+                alert('❌ Harap periksa jumlah saldo dan keterangan.'); return;
+            }
+
+            personalBalances[person] -= amount;
+            transactionHistory.push({ type: 'personal-withdrawal', description: `[Tarik Pribadi ${person}] ${keterangan}`, netAmount: amount, timestamp: new Date().getTime() });
+
+            updatePersonalTabunganUI(); updateHistoryUI(); saveData();
+            personalWithdrawalModal.style.display = "none"; personalWithdrawalForm.reset();
+            alert(`✅ Penarikan pribadi ${formatCurrency(amount)} oleh ${person} berhasil.`);
+        };
+
+
+        // --- INITIALIZATION & EVENT LISTENERS ---
+
+        const init = () => {
+            loadData();
+            updateClock();
+            setInterval(updateClock, 1000); 
+            updateBalanceUI();
+            updatePersonalTabunganUI();
+            updateHistoryUI();
+            resetDistributionUI();
+        };
+
+        // Main Event Listeners
+        toggleBtn.addEventListener('click', toggleView);
+        depositForm.addEventListener('submit', handleDeposit);
+        resetBalanceBtn.addEventListener('click', handleMasterReset);
+        document.getElementById('clearHistoryBtn').addEventListener('click', handleClearHistory);
+        autoShareBtn.addEventListener('click', handleAutoShare);
+        withdrawalFormModal.addEventListener('submit', handleWithdrawal);
+        personalWithdrawalForm.addEventListener('submit', handlePersonalWithdrawal); 
+        pinUpdateForm.addEventListener('submit', handlePinUpdate); 
+
+        // Modal Listeners
+        openModalBtn.onclick = () => { modal.style.display = "block"; };
+        closeModalBtn.onclick = () => { modal.style.display = "none"; withdrawalFormModal.reset(); };
+        window.addEventListener('click', (event) => { if (event.target == modal) { modal.style.display = "none"; withdrawalFormModal.reset(); } });
+
+        document.querySelectorAll('.withdraw-personal').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const person = e.target.getAttribute('data-person');
+                const currentBalance = personalBalances[person];
+                personalWithdrawalTitle.textContent = `💸 Tarik Saldo Tabungan Pribadi (${person})`;
+                currentPersonalBalanceInfo.textContent = `Saldo ${person} saat ini: ${formatCurrency(currentBalance)}`;
+                personalWithdrawalPerson.value = person;
+                personalWithdrawalAmountInput.max = currentBalance; 
+                personalWithdrawalPINInput.value = ''; 
+                personalWithdrawalModal.style.display = "block";
+            });
+        });
+
+        closePersonalModalBtn.onclick = () => { personalWithdrawalModal.style.display = "none"; personalWithdrawalForm.reset(); };
+        window.addEventListener('click', (event) => { if (event.target == personalWithdrawalModal) { personalWithdrawalModal.style.display = "none"; personalWithdrawalForm.reset(); } });
+
+        updatePinButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const person = e.target.getAttribute('data-person');
+                const currentPin = personalPins[person];
+                pinUpdateTitle.textContent = `🔑 Atur/Ubah PIN Tabungan Pribadi (${person})`;
+                currentPinStatus.textContent = currentPin ? `Status: PIN sudah diatur.` : `Status: PIN belum diatur.`;
+                pinUpdatePersonInput.value = person;
+                newPinInput.value = ''; confirmPinInput.value = '';
+                pinUpdateModal.style.display = "block";
+            });
+        });
+
+        closePinModalBtn.onclick = () => { pinUpdateModal.style.display = "none"; pinUpdateForm.reset(); };
+        window.addEventListener('click', (event) => { if (event.target == pinUpdateModal) { pinUpdateModal.style.display = "none"; pinUpdateForm.reset(); } });
+
+
+        init();
+    </script>
+</body>
+</html>
